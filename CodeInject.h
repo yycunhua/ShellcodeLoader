@@ -3,7 +3,7 @@
 #include<TlHelp32.h>
 #include <stdio.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define INIT_CODEBUFFER(s) { sizeof(s), s }
 

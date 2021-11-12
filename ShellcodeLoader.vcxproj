@@ -146,10 +146,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AutoRun.cpp" />
     <ClCompile Include="CodeInject.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AutoRun.h" />
     <ClInclude Include="CodeInject.h" />
     <ClInclude Include="Main.h" />
   </ItemGroup>
