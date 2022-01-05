@@ -4,9 +4,10 @@
 #include"tlhelp32.h"
 
 
-DWORD GetProcessIdByProcessName(const WCHAR ProcessName[MAX_PATH])
+DWORD GetProcessIdByProcessName(const CHAR ProcessName[MAX_PATH])
 {
-	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
+	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hProcessSnap == INVALID_HANDLE_VALUE)
 	{
 		//printf("CreateToolhelp32Snapshot() Fail! ERROR_CODE=%x\n", GetLastError());
@@ -22,11 +23,13 @@ DWORD GetProcessIdByProcessName(const WCHAR ProcessName[MAX_PATH])
 	}
 	do {
 		//printf("%ls",pe32.szExeFile);
-		if (!wcscmp(pe32.szExeFile, ProcessName))
+		if (!strcmp(pe32.szExeFile, ProcessName))
 		{
+			CloseHandle(hProcessSnap);
 			return pe32.th32ProcessID;
 		}
 	} while (Process32Next(hProcessSnap, &pe32));
+	CloseHandle(hProcessSnap);
 	return FALSE;
 }
 

